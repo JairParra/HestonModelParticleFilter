@@ -2,12 +2,14 @@
 
 ## TODO
 
-- **All**
-- **Jair**
-- **Alessio**
-- **Rémi**
-- **Ioan**
-
+- **By Tomorrow** 
+  - Read `Heston project.pdf` and `Heston_93.pdf`
+  - Read enhanced LaTeX transcribed notes from class: https://www.overleaf.com/read/hnspkzjksztf#1d2a9 
+  - Download this repository
+  - Setup your Python Environment (e.g. Anaconda: https://www.anaconda.com/download)
+- **By Sunday**
+  - **All:** Understand Matlab's code in general 
+  - **Jair:** Translation of Heston's Model's given Matlab code to Python
 ## Report 
 
 **Overleaf Edit Link:** https://www.overleaf.com/6361181294brxzmrrqfxbg#e93e60
