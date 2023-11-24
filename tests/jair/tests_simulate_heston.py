@@ -45,18 +45,24 @@ sigma = 0.2 # long-term volatility
 rho = -0.7 # BM correlation parameter
 v_start = 0.04 # ? 
 num_days = 100 # number of simulation days 
+seed = 420 # for random generation 
 
 ### 1 Unoptimized Initial Heston Model 
-ret, V, IV = sh0(mu, kappa, theta, sigma, rho, v_start, num_days)
+ret, V, IV = sh0(mu, kappa, theta, sigma, rho, v_start, num_days, seed=seed)
 
 # Call the function with the simulated data
 plot_simulations(ret, V, IV, num_days)
 
 
 ### 2 Modularized version 
-ret, V, IV = sh1(mu, kappa, theta, sigma, rho, v_start, num_days)
+ret, V, IV = sh1(mu, kappa, theta, sigma, rho, v_start, num_days, seed=seed)
 
 # Call the function with the simulated data
 plot_simulations(ret, V, IV, num_days)
 
 
+# Simulate the model
+ret, V, IV = sh2(mu, kappa, theta, sigma, rho, v_start, num_days, seed=seed)
+
+# Call the function with the simulated data
+plot_simulations(ret, V, IV, num_days)

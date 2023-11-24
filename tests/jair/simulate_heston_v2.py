@@ -1,7 +1,7 @@
 """
 simulate_heston.py 
 
-This scripts simulates Heston's 93 model according to 
+This scripts simulates Heston's 93 model data, returns and integrated variance of the simulation. 
 """
 
 ##################
@@ -10,66 +10,150 @@ This scripts simulates Heston's 93 model according to
 
 import warnings 
 import numpy as np 
+from typing import Tuple, Optional
 
 ##################
 ### 2. Helpers ###
 ##################
 
-def simulate_volatility_path(kappa, theta, sigma, delta, vol_past, steps_per_day):
-    """Simulate the volatility path for one day using the Euler-Maruyama method."""
-    # Using cumulative sum for vectorized computation of the volatility path
-    dW = np.random.normal(0, np.sqrt(delta / steps_per_day), steps_per_day)
-    v_increment = kappa * (theta - vol_past) * delta / steps_per_day + sigma * np.sqrt(vol_past * delta / steps_per_day) * dW
-    v_path = np.maximum.accumulate(vol_past + np.cumsum(v_increment))
-    v_path[0] = vol_past  # Ensure the first element is the previous day's closing volatility
-    return v_path
+def validate_parameters(kappa: float, theta: float, sigma: float) -> bool:
+    """
+    Check if the Heston model parameters are valid.
 
-def compute_integrated_variance(volatility_path, delta):
-    """Compute the integrated variance for the day."""
-    return np.sum((volatility_path[:-1] + volatility_path[1:]) / 2) * delta
+    Parameters:
+    kappa (float): Mean reversion rate.
+    theta (float): Long-term mean of variance.
+    sigma (float): Volatility of volatility.
+
+    Returns:
+    bool: True if parameters are valid, False otherwise.
+    """
+    if theta <= 0:
+        warnings.warn('Theta should be greater than 0')
+        return False
+
+    if sigma <= 0:
+        warnings.warn('Sigma should be greater than 0')
+        return False
+
+    if kappa <= 0:
+        warnings.warn('Kappa should be greater than 0')
+        return False
+
+    if (2 * kappa * theta) <= (sigma ** 2):
+        warnings.warn('2 * kappa * theta should be greater than sigma^2')
+        return False
+
+    return True
+
+
+def simulate_volatility_for_day(kappa: float, theta: float, sigma: float, delta: float, vol_past: float) -> float:
+    """
+    Simulate the volatility path for a single day.
+
+    Parameters:
+    kappa (float): Mean reversion rate.
+    theta (float): Long-term mean of variance.
+    sigma (float): Volatility of volatility.
+    delta (float): Time step.
+    vol_past (float): Previous day's volatility.
+
+    Returns:
+    float: Simulated volatility for the day.
+    """
+    vol_new = max(vol_past + kappa * (theta - vol_past) * delta + 
+                  sigma * np.sqrt(vol_past * delta) * np.random.normal(0, 1), 0.000001)
+    
+    return vol_new
 
 ##############################
 ### 3. Simulation function ###
 ##############################
 
-def simulate_heston93(mu, kappa, theta, sigma, rho, v_start, num_days):
-    """Simulate returns and volatility paths for the Heston model over a number of days."""
-    
-    # Validate model parameters
-    if not all(param > 0 for param in [theta, sigma, kappa]) or (2 * kappa * theta) <= (sigma ** 2):
-        warnings.warn('Model parameters are invalid.')
+def compute_daily_return(mu: float, kappa: float, theta: float, sigma: float, rho: float, delta: float, 
+                         V_today: float, V_yesterday: float, IV_today: float) -> float:
+    """
+    Compute the daily return.
+
+    Parameters:
+    mu (float): Drift rate of the stock price.
+    kappa (float): Mean reversion rate.
+    theta (float): Long-term mean of variance.
+    sigma (float): Volatility of volatility.
+    rho (float): Correlation between stock price and variance.
+    delta (float): Time step.
+    V_today (float): Today's volatility.
+    V_yesterday (float): Yesterday's volatility.
+    IV_today (float): Today's integrated variance.
+
+    Returns:
+    float: Simulated return for the day.
+    """
+    return (mu * delta - IV_today / 2 + rho / sigma * 
+            (V_today - V_yesterday - kappa * theta * delta + kappa * IV_today) + 
+            np.random.normal(0, np.sqrt((1 - rho ** 2) * IV_today)))
+
+
+def simulate_heston93(mu: float, kappa: float, theta: float, sigma: float, rho: float, v_start: float, 
+                      num_days: int, seed: Optional[int] = None) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Simulate returns and volatility paths for the Heston model over a number of days.
+
+    Parameters:
+    - mu (float): Drift rate of the stock price.
+    - kappa (float): Mean reversion rate.
+    - theta (float): Long-term mean of variance.
+    - sigma (float): Volatility of volatility.
+    - rho (float): Correlation between stock price and variance.
+    - v_start (float): Initial volatility.
+    - num_days (int): Number of days to simulate.
+    - seed (int, optional): Seed for the random number generator.
+
+    Returns:
+    - Tuple[np.ndarray, np.ndarray, np.ndarray]: Arrays of simulated returns, end-of-day volatilities,
+                                                 and integrated variances.
+    """
+    # Validate the input parameters for the Heston model
+    if not validate_parameters(kappa, theta, sigma):
         return None, None, None
+    
+    # Set the random seed if provided, for reproducibility
+    if seed is not None:
+        np.random.seed(seed)
 
-    # Trading day fraction for daily discretization
-    delta = 1 / 252
-    steps_per_day = 5  # Number of steps per day for intraday simulation
+    # Define the time step for one trading day
+    delta = 1/252
 
-    # Preallocate arrays for results
-    V = np.zeros(num_days + 1)
-    ret = np.zeros(num_days)
-    IV = np.zeros(num_days)
+    # Initialize arrays to store the results: volatility, returns, and integrated variance
+    V = np.zeros(num_days + 1)  # Array for volatility, with initial value included
+    ret = np.zeros(num_days)    # Array for daily returns
+    IV = np.zeros(num_days)     # Array for integrated variance
 
-    # Start the simulation
+    # Set the initial volatility
+    V[0] = v_start
+
+    # Loop over each day to simulate the model
     for t in range(num_days):
-        vol_past = v_start if t == 0 else V[t]
+        # Start with the previous day's volatility
+        V_today = V[t]
 
-        # Simulate the volatility path for the current day
-        v_path = simulate_volatility_path(kappa, theta, sigma, delta, vol_past, steps_per_day)
-        V[t + 1] = v_path[-1]
+        # Simulate intraday volatility steps
+        for _ in range(5):  # Each trading day is divided into 5 intraday steps
+            V_today = simulate_volatility_for_day(kappa, theta, sigma, delta/5, V_today)
         
-        # Compute the integrated variance for the day
-        IV[t] = compute_integrated_variance(v_path, delta)
-        
-        # Simulate the log return for the day
-        ret[t] = (mu * delta - IV[t] / 2 + rho / sigma * 
-                       (V[t + 1] - vol_past - kappa * theta * delta + kappa * IV[t]) + 
-                       np.random.normal(0, np.sqrt((1 - rho ** 2) * IV[t])))
-        
+        # Update the volatility for the current day
+        V[t + 1] = V_today
+
+        # Calculate the integrated variance for the current day
+        IV[t] = (V[t + 1] + V[t]) / 2 * delta
+
+        # Compute the return for the current day
+        ret[t] = compute_daily_return(mu, kappa, theta, sigma, rho, delta, V[t + 1], V[t], IV[t])
+
         # Add noise to the integrated variance to represent measurement error
         IV[t] += np.random.normal(0, 0.1 * IV[t])
 
+    # Return the simulated returns, volatilities (excluding the initial value), and integrated variances
     return ret, V[1:], IV
-
-
 
 

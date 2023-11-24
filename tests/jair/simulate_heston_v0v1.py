@@ -50,7 +50,11 @@ def compute_daily_return(mu, kappa, theta, sigma, rho, delta, V_today, V_yesterd
 ##############################
 
 ## Version 1 
-def simulate_heston93v0(mu, kappa, theta, sigma, rho, v_start, num_days):
+def simulate_heston93v0(mu, kappa, theta, sigma, rho, v_start, num_days, seed = None):
+    
+    # setup seed for random simulation 
+    if seed:
+        np.random.seed(seed)
     
     # Check if the parameters are valid
     if theta <= 0:
@@ -109,9 +113,13 @@ def simulate_heston93v0(mu, kappa, theta, sigma, rho, v_start, num_days):
 ################################################################################
 ## Version 2
 
-def simulate_heston93v1(mu, kappa, theta, sigma, rho, v_start, num_days):
+def simulate_heston93v1(mu, kappa, theta, sigma, rho, v_start, num_days, seed=None):
     if not validate_parameters(kappa, theta, sigma):
         return None, None, None
+    
+    # setup seed for random simulation 
+    if seed:
+        np.random.seed(seed)
 
     # Time step for one trading day
     delta = 1/252

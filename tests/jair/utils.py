@@ -34,7 +34,7 @@ plt.rcParams.update({"grid.linewidth":0.5, "grid.alpha":0.5})
 def plot_simulations(ret, V, IV, num_days):
     days = range(1, num_days + 1)
     
-    plt.figure(figsize=(17, 7))
+    plt.figure(figsize=(20, 7))
 
     # Plot returns
     plt.subplot(3, 1, 1)  # 3 rows, 1 column, 1st subplot
