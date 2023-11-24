@@ -1,5 +1,5 @@
 """
-simlation.py 
+simulation.py 
 
 This script simulates Heston's model and performs a variety of analysis. 
 Based on the original matlab script provided for the assignment. 
@@ -68,9 +68,6 @@ ret, V, RV = simulate_heston93(mu, kappa, theta, sigma, rho, v, num_days)
 
 # Call the function with the simulated data
 plot_simulations(ret, V, RV, num_days)
-
-# Call the function with the filtered variance data
-plot_filtered_variance(V, num_days)
 
 ######################################
 ### 3. Filter with true parameters ###

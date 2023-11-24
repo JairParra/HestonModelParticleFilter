@@ -23,7 +23,7 @@ from concurrent.futures import ProcessPoolExecutor
 
 
 # custom modules 
-from src.particle_filter import heston93_particle_filter 
+from src.heston import heston93_particle_filter 
 
 ## configurations 
 
