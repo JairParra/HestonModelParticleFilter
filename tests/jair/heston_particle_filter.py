@@ -11,7 +11,6 @@ This scripts simulates Heston's 93 model according to
 import warnings 
 import numpy as np 
 from scipy.stats import norm
-
 from typing import Tuple, Optional
 
 ##################
@@ -69,7 +68,8 @@ def heston93_particle_filter(x: np.ndarray, simul: dict, obs: np.ndarray, c_i: i
     Like_H = np.zeros(N)
 
     # Define the probability density function based on the observation set
-    pdf = lambda Y, RV, IV_s, v1, v2: norm.pdf(Y, mu * delta - 0.5 * IV_s + rho / sigma *
+    pdf = lambda Y, RV, IV_s, v1, v2: norm.pdf(Y,
+                                               mu * delta - 0.5 * IV_s + rho / sigma *
                                                (v2 - v1 - kappa * theta * delta + kappa * IV_s),
                                                np.sqrt((1 - rho ** 2) * IV_s)) * (norm.pdf((IV_s - RV) / RV, 0, eta_p) 
                                                                                   if size_obs == 2 else 1)
@@ -102,7 +102,7 @@ def heston93_particle_filter(x: np.ndarray, simul: dict, obs: np.ndarray, c_i: i
 
         # Compute expected volatility value and confidence interval if required
         if c_i == 1:
-            V[t, 0] = np.sum(v2 * pis)
+            V[t, 0] = np.sum(v2 * pis)  # expected volatility
             V[t, 1] = np.interp(0.025, arr[:, 1], arr[:, 0])
             V[t, 2] = np.interp(0.975, arr[:, 1], arr[:, 0])
 
