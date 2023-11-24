@@ -1,7 +1,9 @@
 """
-simulate_heston.py 
+utils.py 
 
-This scripts simulates Heston's 93 model according to 
+Provide a number utility functions for other modules. 
+
+@author: Hair Albeiro Parra Barrera
 """
 ################################################################################
 ##################
@@ -9,11 +11,16 @@ This scripts simulates Heston's 93 model according to
 ##################
 
 # general imports
+import os
 import pprint 
+import concurrent
 import numpy as np 
 import seaborn as sns
 import matplotlib.pyplot as plt
+
 from tqdm import tqdm 
+from concurrent.futures import ProcessPoolExecutor
+
 
 # custom modules 
 from src.particle_filter import heston93_particle_filter 
@@ -53,10 +60,10 @@ def calculate_log_likelihoods_for_params(base_params, param_ranges, simul, ret, 
     for i, param_name in tqdm(enumerate(param_ranges.keys()), 
                               desc="fitting Heston for params...", 
                               total=len(param_ranges.keys())):
-        print(f"-->Varying parameter: {param_name}<--")
+        print(f"\n\t(Varying parameter: {param_name})")
         
         L = []  # List to store log-likelihoods for this parameter
-        for value in tqdm(param_ranges[param_name], desc="fitting possible parameters..."):
+        for value in tqdm(param_ranges[param_name], desc="fitting ..."):
             
             x = base_params.copy()
             x[i] = value  # Update the specific parameter value
@@ -64,16 +71,14 @@ def calculate_log_likelihoods_for_params(base_params, param_ranges, simul, ret, 
             # Calculate log-likelihood depending on whether rv is provided
             if rv is not None:
                 likelihood, _ = heston93_particle_filter(x, simul, 
-                                                         np.column_stack((ret, rv)),
-                                                         1, transform_params=False, 
-                                                         verbose=False)
+                                                          np.column_stack((ret, rv)),
+                                                          1, transform_params=False, 
+                                                          verbose=False)
             else:
                 likelihood, _ = heston93_particle_filter(x, simul, ret, 1, 
-                                                         transform_params=False,
-                                                         verbose=False)
+                                                          transform_params=False,
+                                                          verbose=False)
             L.append(likelihood)
         # Store the parameter values and their corresponding log-likelihoods
         results[param_name] = (param_ranges[param_name], L)
     return results
-
-

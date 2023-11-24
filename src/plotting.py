@@ -1,7 +1,9 @@
 """
-simulate_heston.py 
+plotting.py 
 
-This scripts simulates Heston's 93 model according to 
+Contains scripts for all plots employed in the simulation. 
+
+@author: Hair Albeiro Parra Barrera
 """
 ################################################################################
 ##################

@@ -1,5 +1,10 @@
 """
-TODO 
+simlation.py 
+
+This script simulates Heston's model and performs a variety of analysis. 
+Based on the original matlab script provided for the assignment. 
+
+@author: Hair Albeiro Parra Barrera
 """
 
 ##################
@@ -26,9 +31,9 @@ from src.plotting import plot_log_likelihood_ret
 from src.plotting import plot_log_likelihood_ret_rv
 
 # simulation and filtering scripts 
+from src.heston import simulate_heston93
+from src.heston import heston93_particle_filter 
 from src.utils import calculate_log_likelihoods_for_params
-from src.simulate_heston import simulate_heston93
-from src.particle_filter import heston93_particle_filter 
 
 ## configurations 
 
@@ -91,11 +96,11 @@ simul = {
 }
 
 # Filter using only the returns and the true parameters
-Like_H_true_ret, V_ret_true = heston93_particle_filter(tparams, simul, ret, 1)
+Like_H_true_ret, V_ret_true = heston93_particle_filter(tparams, simul, ret, 1, verbose=True)
 
 # Filter using the returns, the Realized Variance and the true parameters
 start_time = time.time()
-Like_H_true_rv, V_RV_true = heston93_particle_filter(tparams, simul, np.column_stack((ret, RV)), 1)
+Like_H_true_rv, V_RV_true = heston93_particle_filter(tparams, simul, np.column_stack((ret, RV)), 1, verbose=True)
 end_time = time.time()
 print(f"Execution time: {end_time - start_time} seconds")
 
@@ -114,7 +119,7 @@ opt_ret = fmin(
     x0=tparams[:5],
     xtol=1e-3,
     ftol=1e-3,
-    maxiter=10, # I put a limit since it doesn't seem to be converging 
+    maxiter=50, # I put a limit since it doesn't seem to be converging 
     disp=True   # Set to False to turn off the iteration messages
 )
 end_time = time.time() # might take ~1min per 10 steps
@@ -130,7 +135,7 @@ opt_rv = fmin(
     x0=tparams,
     xtol=1e-3,
     ftol=1e-3,
-    maxiter=10, # I put a limit since it doesn't seem to be converging 
+    maxiter=50, # I put a limit since it doesn't seem to be converging 
     disp=True
 )
 print(f"Execution time: {end_time - start_time} seconds")

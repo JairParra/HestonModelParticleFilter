@@ -1,5 +1,6 @@
 """
-TODO 
+@author: Hair Albeiro Parra Barrera
+
 """
 ################################################################################
 ##################
@@ -16,8 +17,8 @@ import matplotlib.pyplot as plt
 # custom modules 
 from src.utils import plot_simulations
 from src.utils import plot_filtered_variance
-from src.simulate_heston import simulate_heston93
-from src.particle_filter import heston93_particle_filter 
+from src.heston import simulate_heston93
+from src.heston import heston93_particle_filter 
 
 ## configurations 
 
