@@ -64,7 +64,6 @@ def plot_simulations(ret, V, IV, num_days):
     plt.show()
 
 
-
 def plot_filtered_variance(filtered_variance, num_days, include_confidence_interval=True):
     """
     Plots the progression of filtered variance over time.
@@ -97,3 +96,110 @@ def plot_filtered_variance(filtered_variance, num_days, include_confidence_inter
     plt.show()
     
     
+#####################################
+### 3. Plots from provided script ###
+#####################################
+    
+
+# Function for Plots Using Only Returns
+def plot_returns_analysis(ret, V, V_ret_true, V_ret_est, num_days):
+    plt.figure(figsize=(10, 12))
+    plt.suptitle('Volatility Analysis with Returns')
+
+    # Plot of simulated returns
+    plt.subplot(4, 1, 1)
+    plt.plot(ret, 'k')
+    plt.xlabel('Days')
+    plt.ylabel('Log-Returns')
+    plt.title('Simulated Returns')
+    plt.xlim([0, num_days])
+
+    # Volatility filtered using returns and true parameters
+    plt.subplot(4, 1, 2)
+    plt.plot(V, 'k', label='True Variance')
+    plt.plot(V_ret_true[:, 0], 'b', label='Filtered Variance')
+    plt.plot(V_ret_true[:, 1], 'r--', label='2.5%')
+    plt.plot(V_ret_true[:, 2], 'r--', label='97.5%')
+    plt.title('Volatility Filtered (Returns & True Params)')
+    plt.xlabel('Days')
+    plt.ylabel('Volatility Level')
+    plt.legend(loc='upper left') 
+    plt.xlim([0, num_days])
+
+    # Volatility filtered using returns and estimated parameters
+    plt.subplot(4, 1, 3)
+    plt.plot(V, 'k', label='True Variance')
+    plt.plot(V_ret_est[:, 0], 'b', label='Filtered Variance')
+    plt.plot(V_ret_est[:, 1], 'r--', label='2.5%')
+    plt.plot(V_ret_est[:, 2], 'r--', label='97.5%')
+    plt.title('Volatility Filtered (Returns & Est. Params)')
+    plt.xlabel('Days')
+    plt.ylabel('Volatility Level')
+    plt.legend(loc='upper left')
+    plt.xlim([0, num_days])
+
+    # Comparison of filtered volatility (true vs estimated parameters)
+    plt.subplot(4, 1, 4)
+    plt.plot(V, 'k', label='True Variance')
+    plt.plot(V_ret_true[:, 0], 'r', label='Filtered (True Params)')
+    plt.plot(V_ret_est[:, 0], 'b', label='Filtered (Est. Params)')
+    plt.title('Comparison of Filtered Volatility')
+    plt.xlabel('Days')
+    plt.ylabel('Volatility Level')
+    plt.legend(loc='upper left')
+    plt.xlim([0, num_days])
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.show()
+
+
+# Function for Plots Using Returns and Realized Variance
+def plot_returns_rv_analysis(ret, V, V_RV_true, V_RV_est, num_days):
+    plt.figure(figsize=(10, 12))
+    plt.suptitle('Volatility Analysis with Returns & RV')
+
+    # Plot of simulated returns
+    plt.subplot(4, 1, 1)
+    plt.plot(ret, 'k')
+    plt.xlabel('Days')
+    plt.ylabel('Log-Returns')
+    plt.title('Simulated Returns')
+    plt.xlim([0, num_days])
+
+    # Volatility filtered using returns + RV and the true parameters
+    plt.subplot(4, 1, 2)
+    plt.plot(V, 'k', label='True Variance')
+    plt.plot(V_RV_true[:, 0], 'b', label='Filtered Variance')
+    plt.plot(V_RV_true[:, 1], 'r--', label='2.5%')
+    plt.plot(V_RV_true[:, 2], 'r--', label='97.5%')
+    plt.title('Volatility Filtered (Returns + RV & True Params)')
+    plt.xlabel('Days')
+    plt.ylabel('Volatility Level')
+    plt.legend(loc='upper left')
+    plt.xlim([0, num_days])
+
+    # Volatility filtered using returns + RV and the estimated parameters
+    plt.subplot(4, 1, 3)
+    plt.plot(V, 'k', label='True Variance')
+    plt.plot(V_RV_est[:, 0], 'b', label='Filtered Variance')
+    plt.plot(V_RV_est[:, 1], 'r--', label='2.5%')
+    plt.plot(V_RV_est[:, 2], 'r--', label='97.5%')
+    plt.title('Volatility Filtered (Returns + RV & Est. Params)')
+    plt.xlabel('Days')
+    plt.ylabel('Volatility Level')
+    plt.legend(loc='upper left')
+    plt.xlim([0, num_days])
+
+    # Comparison of filtered volatility (true vs estimated parameters)
+    plt.subplot(4, 1, 4)
+    plt.plot(V, 'k', label='True Variance')
+    plt.plot(V_RV_true[:, 0], 'r', label='Filtered (True Params)')
+    plt.plot(V_RV_est[:, 0], 'b', label='Filtered (Est. Params)')
+    plt.title('Comparison of Filtered Volatility')
+    plt.xlabel('Days')
+    plt.ylabel('Volatility Level')
+    plt.legend(loc='upper left')
+    plt.xlim([0, num_days])
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.show()
