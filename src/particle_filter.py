@@ -26,7 +26,6 @@ from scipy.optimize import fmin
 ### 3. Particle Filter ###
 ##########################
 
-# 
 def heston93_particle_filter(x: np.ndarray, 
                              simul: dict, 
                              obs: np.ndarray, 
@@ -69,7 +68,7 @@ def heston93_particle_filter(x: np.ndarray,
         theta = x[2] 
         sigma = x[3] 
         rho = x[4] 
-        eta_p = x[5]
+        eta_p = x[5] if not is_1D else None
 
     # Time step for one trading day
     delta = 1 / 252
@@ -89,7 +88,7 @@ def heston93_particle_filter(x: np.ndarray,
                                                            if not is_1D else 1)
 
     # apply the filtering 
-    for t in tqdm(range(N), desc="filtering..."):
+    for t in tqdm(range(N), desc="filtering...", disable = not verbose):
         # Simulate one step propagation for volatility and compute integrated variance
         IV = 0
         vol_past = v1
@@ -127,7 +126,7 @@ def heston93_particle_filter(x: np.ndarray,
     Like_H = np.sum(-Like_H)
     
     # display likelihood if propmpted 
-    if verbose: print("likelihood: ", Like_H)
+    if verbose: print("-log_likelihood: ", Like_H)
 
     return Like_H, V
 

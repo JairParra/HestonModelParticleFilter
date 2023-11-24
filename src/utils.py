@@ -10,11 +10,13 @@ This scripts simulates Heston's 93 model according to
 
 # general imports
 import pprint 
-import warnings 
 import numpy as np 
-import pandas as pd 
 import seaborn as sns
 import matplotlib.pyplot as plt
+from tqdm import tqdm 
+
+# custom modules 
+from src.particle_filter import heston93_particle_filter 
 
 ## configurations 
 
@@ -26,180 +28,52 @@ sns.set(style="darkgrid", context="talk")
 plt.style.use("dark_background")
 plt.rcParams.update({"grid.linewidth":0.5, "grid.alpha":0.5})
 
-################################################################################
-#########################
-### 2. Plotting Utils ###
-#########################
 
-def plot_simulations(ret, V, IV, num_days):
-    days = range(1, num_days + 1)
-    
-    plt.figure(figsize=(18, 6))
+##################
+### 2. Helpers ###
+##################
 
-    # Plot returns
-    plt.subplot(3, 1, 1)  # 3 rows, 1 column, 1st subplot
-    plt.plot(days, ret, label='Returns')
-    plt.title('Simulated Daily Returns')
-    plt.xlabel('Day')
-    plt.ylabel('Returns')
-    plt.legend()
-
-    # Plot volatility
-    plt.subplot(3, 1, 2)  # 3 rows, 1 column, 2nd subplot
-    plt.plot(days, V, label='Volatility', color='orange')
-    plt.title('Simulated Daily Volatility')
-    plt.xlabel('Day')
-    plt.ylabel('Volatility')
-    plt.legend()
-
-    # Plot integrated variance
-    plt.subplot(3, 1, 3)  # 3 rows, 1 column, 3rd subplot
-    plt.plot(days, IV, label='Integrated Variance', color='green')
-    plt.title('Simulated Integrated Variance')
-    plt.xlabel('Day')
-    plt.ylabel('Integrated Variance')
-    plt.legend()
-
-    plt.tight_layout()
-    plt.show()
-
-
-def plot_filtered_variance(filtered_variance, num_days, include_confidence_interval=True):
+def calculate_log_likelihoods_for_params(base_params, param_ranges, simul, ret, rv=None):
     """
-    Plots the progression of filtered variance over time.
+    Calculate log-likelihoods for a range of values for each parameter in a given model.
 
-    Parameters:
-    filtered_variance (np.ndarray): Filtered variance array from the particle filter.
-    num_days (int): Number of days (time steps) in the simulation.
-    include_confidence_interval (bool): Whether to include confidence intervals in the plot.
+    Args:
+    base_params (list): Base parameter values for the model.
+    param_ranges (dict): Dictionary of parameter names and their ranges to test.
+    simul (dict): Simulated noise data.
+    ret (np.array): Array of returns.
+    rv (np.array, optional): Array of realized variances, if available. Defaults to None.
+
+    Returns:
+    dict: Dictionary containing parameter names as keys and tuples of parameter values and 
+          corresponding log-likelihoods as values.
     """
-    time_steps = range(num_days)
-    
-    # Extract filtered variance values
-    var_values = filtered_variance[:, 0]
-
-    plt.figure(figsize=(12, 6))
-    plt.plot(time_steps, var_values, label='Filtered Variance', color='blue')
-    
-    if include_confidence_interval and filtered_variance.shape[1] > 1:
-        # Extract lower and upper bounds for the confidence interval
-        lower_bound = filtered_variance[:, 1]
-        upper_bound = filtered_variance[:, 2]
+    results = {}
+    # Loop over each parameter and its range
+    for i, param_name in tqdm(enumerate(param_ranges.keys()), 
+                              desc="fitting Heston for params...", 
+                              total=len(param_ranges.keys())):
+        print(f"-->Varying parameter: {param_name}<--")
         
-        plt.fill_between(time_steps, lower_bound, upper_bound, color='gray', alpha=0.3,
-                         label='95% Confidence Interval')
-
-    plt.xlabel('Time (Days)')
-    plt.ylabel('Variance')
-    plt.title('Filtered Variance Progression Over Time')
-    plt.legend()
-    plt.show()
-    
-    
-#####################################
-### 3. Plots from provided script ###
-#####################################
-    
-
-# Function for Plots Using Only Returns
-def plot_returns_analysis(ret, V, V_ret_true, V_ret_est, num_days):
-    plt.figure(figsize=(10, 12))
-    plt.suptitle('Volatility Analysis with Returns')
-
-    # Plot of simulated returns
-    plt.subplot(4, 1, 1)
-    plt.plot(ret, 'k')
-    plt.xlabel('Days')
-    plt.ylabel('Log-Returns')
-    plt.title('Simulated Returns')
-    plt.xlim([0, num_days])
-
-    # Volatility filtered using returns and true parameters
-    plt.subplot(4, 1, 2)
-    plt.plot(V, 'k', label='True Variance')
-    plt.plot(V_ret_true[:, 0], 'b', label='Filtered Variance')
-    plt.plot(V_ret_true[:, 1], 'r--', label='2.5%')
-    plt.plot(V_ret_true[:, 2], 'r--', label='97.5%')
-    plt.title('Volatility Filtered (Returns & True Params)')
-    plt.xlabel('Days')
-    plt.ylabel('Volatility Level')
-    plt.legend(loc='upper left') 
-    plt.xlim([0, num_days])
-
-    # Volatility filtered using returns and estimated parameters
-    plt.subplot(4, 1, 3)
-    plt.plot(V, 'k', label='True Variance')
-    plt.plot(V_ret_est[:, 0], 'b', label='Filtered Variance')
-    plt.plot(V_ret_est[:, 1], 'r--', label='2.5%')
-    plt.plot(V_ret_est[:, 2], 'r--', label='97.5%')
-    plt.title('Volatility Filtered (Returns & Est. Params)')
-    plt.xlabel('Days')
-    plt.ylabel('Volatility Level')
-    plt.legend(loc='upper left')
-    plt.xlim([0, num_days])
-
-    # Comparison of filtered volatility (true vs estimated parameters)
-    plt.subplot(4, 1, 4)
-    plt.plot(V, 'k', label='True Variance')
-    plt.plot(V_ret_true[:, 0], 'r', label='Filtered (True Params)')
-    plt.plot(V_ret_est[:, 0], 'b', label='Filtered (Est. Params)')
-    plt.title('Comparison of Filtered Volatility')
-    plt.xlabel('Days')
-    plt.ylabel('Volatility Level')
-    plt.legend(loc='upper left')
-    plt.xlim([0, num_days])
-
-    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-    plt.show()
+        L = []  # List to store log-likelihoods for this parameter
+        for value in tqdm(param_ranges[param_name], desc="fitting possible parameters..."):
+            
+            x = base_params.copy()
+            x[i] = value  # Update the specific parameter value
+            
+            # Calculate log-likelihood depending on whether rv is provided
+            if rv is not None:
+                likelihood, _ = heston93_particle_filter(x, simul, 
+                                                         np.column_stack((ret, rv)),
+                                                         1, transform_params=False, 
+                                                         verbose=False)
+            else:
+                likelihood, _ = heston93_particle_filter(x, simul, ret, 1, 
+                                                         transform_params=False,
+                                                         verbose=False)
+            L.append(likelihood)
+        # Store the parameter values and their corresponding log-likelihoods
+        results[param_name] = (param_ranges[param_name], L)
+    return results
 
 
-# Function for Plots Using Returns and Realized Variance
-def plot_returns_rv_analysis(ret, V, V_RV_true, V_RV_est, num_days):
-    plt.figure(figsize=(10, 12))
-    plt.suptitle('Volatility Analysis with Returns & RV')
-
-    # Plot of simulated returns
-    plt.subplot(4, 1, 1)
-    plt.plot(ret, 'k')
-    plt.xlabel('Days')
-    plt.ylabel('Log-Returns')
-    plt.title('Simulated Returns')
-    plt.xlim([0, num_days])
-
-    # Volatility filtered using returns + RV and the true parameters
-    plt.subplot(4, 1, 2)
-    plt.plot(V, 'k', label='True Variance')
-    plt.plot(V_RV_true[:, 0], 'b', label='Filtered Variance')
-    plt.plot(V_RV_true[:, 1], 'r--', label='2.5%')
-    plt.plot(V_RV_true[:, 2], 'r--', label='97.5%')
-    plt.title('Volatility Filtered (Returns + RV & True Params)')
-    plt.xlabel('Days')
-    plt.ylabel('Volatility Level')
-    plt.legend(loc='upper left')
-    plt.xlim([0, num_days])
-
-    # Volatility filtered using returns + RV and the estimated parameters
-    plt.subplot(4, 1, 3)
-    plt.plot(V, 'k', label='True Variance')
-    plt.plot(V_RV_est[:, 0], 'b', label='Filtered Variance')
-    plt.plot(V_RV_est[:, 1], 'r--', label='2.5%')
-    plt.plot(V_RV_est[:, 2], 'r--', label='97.5%')
-    plt.title('Volatility Filtered (Returns + RV & Est. Params)')
-    plt.xlabel('Days')
-    plt.ylabel('Volatility Level')
-    plt.legend(loc='upper left')
-    plt.xlim([0, num_days])
-
-    # Comparison of filtered volatility (true vs estimated parameters)
-    plt.subplot(4, 1, 4)
-    plt.plot(V, 'k', label='True Variance')
-    plt.plot(V_RV_true[:, 0], 'r', label='Filtered (True Params)')
-    plt.plot(V_RV_est[:, 0], 'b', label='Filtered (Est. Params)')
-    plt.title('Comparison of Filtered Volatility')
-    plt.xlabel('Days')
-    plt.ylabel('Volatility Level')
-    plt.legend(loc='upper left')
-    plt.xlim([0, num_days])
-
-    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-    plt.show()
