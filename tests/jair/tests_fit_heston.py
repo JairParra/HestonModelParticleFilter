@@ -192,10 +192,10 @@ results_ret = calculate_log_likelihoods_for_params(opt_ret, param_ranges_ret, si
 results_rv = calculate_log_likelihoods_for_params(opt_rv, param_ranges_rv, simul, ret, RV)
 
 # Plotting for Returns Only
-plot_log_likelihood_ret(results_ret)
+plot_log_likelihood_ret(results_ret, num_days)
 
 # Plotting for Returns and RV
-plot_log_likelihood_ret_rv(results_rv)
+plot_log_likelihood_ret_rv(results_rv, num_days)
 
 
 
