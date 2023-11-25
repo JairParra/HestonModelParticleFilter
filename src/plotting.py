@@ -218,10 +218,10 @@ def plot_log_likelihood_ret(log_likelihoods, num_days):
     for i, (param_name, data) in enumerate(log_likelihoods.items(), 1):
         plt.subplot(3, 2, i)
         values, likelihoods = data[0], data[1]  # Correctly access the tuple elements
-        plt.plot(values, likelihoods, 'k')
+        plt.plot(values, likelihoods, color='blue')
         plt.ylabel('Log-Likelihood')
         plt.xlabel(param_name)
-        plt.title(f'Parameter {param_name}')
+        plt.title(f'Parameter $\{param_name}$')
     
     plt.tight_layout()
     plt.show()
@@ -240,10 +240,10 @@ def plot_log_likelihood_ret_rv(log_likelihoods, num_days):
     for i, (param_name, data) in enumerate(log_likelihoods.items(), 1):
         plt.subplot(3, 2, i)
         values, likelihoods = data[0], data[1]  # Correctly access the tuple elements
-        plt.plot(values, likelihoods, 'k')
+        plt.plot(values, likelihoods, color='blue')
         plt.ylabel('Log-Likelihood')
         plt.xlabel(param_name)
-        plt.title(f'Parameter {param_name}')
+        plt.title(f'Parameter $\{param_name}$')
     plt.tight_layout()
     plt.show()
 
