@@ -105,7 +105,7 @@ def plot_returns_analysis(ret, V, V_ret_true, V_ret_est, num_days):
 
     # Plot of simulated returns
     plt.subplot(4, 1, 1)
-    plt.plot(ret, 'k')
+    plt.plot(ret, color='blue')
     plt.xlabel('Days')
     plt.ylabel('Log-Returns')
     plt.title('Simulated Returns')
@@ -157,7 +157,7 @@ def plot_returns_rv_analysis(ret, V, V_RV_true, V_RV_est, num_days):
 
     # Plot of simulated returns
     plt.subplot(4, 1, 1)
-    plt.plot(ret, 'k')
+    plt.plot(ret, color='blue')
     plt.xlabel('Days')
     plt.ylabel('Log-Returns')
     plt.title('Simulated Returns')
@@ -246,4 +246,3 @@ def plot_log_likelihood_ret_rv(log_likelihoods, num_days):
         plt.title(f'Parameter $\{param_name}$')
     plt.tight_layout()
     plt.show()
-

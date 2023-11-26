@@ -1,6 +1,5 @@
 """
 @author: Hair Albeiro Parra Barrera
-
 """
 ################################################################################
 ##################
@@ -15,10 +14,10 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 # custom modules 
-from src.utils import plot_simulations
-from src.utils import plot_filtered_variance
 from src.heston import simulate_heston93
 from src.heston import heston93_particle_filter 
+from src.plotting import plot_simulations
+from src.plotting import plot_filtered_variance
 
 ## configurations 
 

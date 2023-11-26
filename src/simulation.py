@@ -22,6 +22,11 @@ import matplotlib.pyplot as plt
 # computational  
 from scipy.optimize import fmin 
 
+# simulation and filtering scripts 
+from src.heston import simulate_heston93
+from src.heston import heston93_particle_filter 
+from src.utils import calculate_log_likelihoods_for_params
+
 # custom plotting  
 from src.plotting import plot_simulations
 from src.plotting import plot_filtered_variance
@@ -29,11 +34,6 @@ from src.plotting import plot_returns_analysis
 from src.plotting import plot_returns_rv_analysis
 from src.plotting import plot_log_likelihood_ret
 from src.plotting import plot_log_likelihood_ret_rv
-
-# simulation and filtering scripts 
-from src.heston import simulate_heston93
-from src.heston import heston93_particle_filter 
-from src.utils import calculate_log_likelihoods_for_params
 
 ## configurations 
 
@@ -68,9 +68,6 @@ ret, V, RV = simulate_heston93(mu, kappa, theta, sigma, rho, v, num_days)
 
 # Call the function with the simulated data
 plot_simulations(ret, V, RV, num_days)
-
-# Call the function with the filtered variance data
-plot_filtered_variance(V, num_days)
 
 ######################################
 ### 3. Filter with true parameters ###
@@ -119,7 +116,7 @@ opt_ret = fmin(
     x0=tparams[:5],
     xtol=1e-3,
     ftol=1e-3,
-    maxiter=50, # I put a limit since it doesn't seem to be converging 
+    maxiter=100, # I put a limit since it doesn't seem to be converging 
     disp=True   # Set to False to turn off the iteration messages
 )
 end_time = time.time() # might take ~1min per 10 steps
@@ -135,7 +132,7 @@ opt_rv = fmin(
     x0=tparams,
     xtol=1e-3,
     ftol=1e-3,
-    maxiter=50, # I put a limit since it doesn't seem to be converging 
+    maxiter=100, # I put a limit since it doesn't seem to be converging 
     disp=True
 )
 print(f"Execution time: {end_time - start_time} seconds")
@@ -149,6 +146,12 @@ plot_returns_analysis(ret, V, V_ret_true, V_ret_est, num_days)
 
 # Call the function for plotting analysis using returns and realized variance
 plot_returns_rv_analysis(ret, V, V_RV_true, V_RV_est, num_days)
+
+# Call the function with the filtered variance data
+plot_filtered_variance(V_ret_est, num_days)
+
+# Call the function with the filtered variance data
+plot_filtered_variance(V_RV_est, num_days)
 
 ##############################
 ### 5. Likelihood Analysis ###
