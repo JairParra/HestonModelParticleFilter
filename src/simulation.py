@@ -125,7 +125,7 @@ if reoptimize:
         x0=tparams[:5],
         xtol=1e-2, 
         ftol=1e-2, 
-        maxiter=200, # I put a limit since it doesn't seem to be converging 
+        maxiter=500, # I put a limit since it doesn't seem to be converging 
         disp=True   # Set to False to turn off the iteration messages
     )
     end_time = time.time() # might take ~1min per 10 steps
@@ -140,18 +140,14 @@ if reoptimize:
     opt_rv = fmin(
         func=lambda x: heston93_particle_filter(x, simul, 
                                                 np.column_stack((ret, RV)),
-                                                1, verbose=False)[0], # Only use the log likelihood
+                                                1, verbose=True)[0], # Only use the log likelihood
         x0=tparams,
         xtol=1e-2,
         ftol=1e-2,
-        maxiter=200, # I put a limit since it doesn't seem to be converging 
+        maxiter=500, # I put a limit since it doesn't seem to be converging 
         disp=True
     )
     print(f"Execution time: {end_time - start_time} seconds")
-    
-    # save the optimal parameters at this step 
-    with open('data_clean/opt_params/opt_rv.npy', 'wb') as f: 
-        np.save(f, opt_rv)
 
     # save the optimal parameters at this step 
     with open('data_clean/opt_params/opt_rv.npy', 'wb') as f: 

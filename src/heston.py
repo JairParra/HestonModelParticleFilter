@@ -250,6 +250,7 @@ def heston93_particle_filter(x: np.ndarray,
         Y = obs[t] if is_1D else obs[t, 0]
         RV = None if is_1D else obs[t, 1]
         w = pdf(Y, RV, IV, v1, v2)
+        w = w if np.any(w) else np.full(w.shape, 1/w.shape[0]) # if w was all zeroes, equal weights
         w_bar = np.mean(w) if np.mean(w) != 0 else 1e-6
         Like_H[t] = np.log(w_bar)
 
@@ -262,7 +263,7 @@ def heston93_particle_filter(x: np.ndarray,
         arr = np.sort(arr, axis=0)
         arr[:, 1] = np.cumsum(arr[:, 1]) - arr[:, 1] / 2
         arr = np.vstack(([arr[0, 0] * 0.95, 0], arr, [arr[-1, 0] * 1.05, 1]))
-
+ 
         # Compute expected volatility value and confidence interval if required
         if c_i == 1:
             V[t, 0] = np.sum(v2 * pis)
