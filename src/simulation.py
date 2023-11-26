@@ -101,6 +101,10 @@ Like_H_true_rv, V_RV_true = heston93_particle_filter(tparams, simul, np.column_s
 end_time = time.time()
 print(f"Execution time: {end_time - start_time} seconds")
 
+
+# Call the function with the filtered variance data
+plot_filtered_variance(V_RV_true, num_days)
+
 ###########################
 ### 4. Parameter Search ###
 ###########################
@@ -112,11 +116,11 @@ start_time = time.time()
 opt_ret = fmin(
     func=lambda x: heston93_particle_filter(np.concatenate([x, [eta_transformed]]),
                                             simul, ret, 1,
-                                            verbose=True)[0],  # Only use the log likelihood
+                                            verbose=False)[0],  # Only use the log likelihood
     x0=tparams[:5],
     xtol=1e-3,
     ftol=1e-3,
-    maxiter=100, # I put a limit since it doesn't seem to be converging 
+    maxiter=200, # I put a limit since it doesn't seem to be converging 
     disp=True   # Set to False to turn off the iteration messages
 )
 end_time = time.time() # might take ~1min per 10 steps
@@ -128,14 +132,23 @@ start_time = time.time()
 opt_rv = fmin(
     func=lambda x: heston93_particle_filter(x, simul, 
                                             np.column_stack((ret, RV)),
-                                            1, verbose=True)[0], # Only use the log likelihood
+                                            1, verbose=False)[0], # Only use the log likelihood
     x0=tparams,
     xtol=1e-3,
     ftol=1e-3,
-    maxiter=100, # I put a limit since it doesn't seem to be converging 
+    maxiter=200, # I put a limit since it doesn't seem to be converging 
     disp=True
 )
 print(f"Execution time: {end_time - start_time} seconds")
+
+
+# save the optimal parameters at this step 
+with open('data_clean/opt_params/opt_ret.npy', 'wb') as f: 
+    np.save(f, opt_ret)
+    
+# save the optimal parameters at this step 
+with open('data_clean/opt_params/opt_rv.npy', 'wb') as f: 
+    np.save(f, opt_rv)
 
 # Compute the filtered volatility
 Like_H_ret, V_ret_est = heston93_particle_filter(opt_ret, simul, ret, 1, verbose=True)

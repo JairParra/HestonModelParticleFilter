@@ -71,8 +71,8 @@ def calculate_log_likelihoods_for_params(base_params, param_ranges, simul, ret, 
             # Calculate log-likelihood depending on whether rv is provided
             if rv is not None:
                 likelihood, _ = heston93_particle_filter(x, simul, 
-                                                          np.column_stack((ret, rv)),
-                                                          1, transform_params=False, 
+                                                          np.column_stack((ret, rv)), 1, 
+                                                          transform_params=False, 
                                                           verbose=False)
             else:
                 likelihood, _ = heston93_particle_filter(x, simul, ret, 1, 
