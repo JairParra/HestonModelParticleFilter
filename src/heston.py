@@ -225,10 +225,16 @@ def heston93_particle_filter(x: np.ndarray,
 
     # Define the probability density function
     def pdf(Y, RV, IV_s, v1, v2):
-        return norm.pdf(Y, mu * delta - 0.5 * IV_s + rho / sigma *
-                        (v2 - v1 - kappa * theta * delta + kappa * IV_s),
-                        np.sqrt((1 - rho ** 2) * IV_s)) * (norm.pdf((IV_s - RV) / RV, 0, eta_p)
-                                                           if not is_1D else 1)
+        if not is_1D: 
+            return norm.pdf(Y, 
+                            mu * delta - 0.5 * IV_s + rho / sigma *
+                            (v2 - v1 - kappa * theta * delta + kappa * IV_s),
+                            np.sqrt((1 - rho ** 2) * IV_s)) * (norm.pdf((IV_s - RV) / RV, 0, eta_p))
+        else: 
+            return norm.pdf(Y, 
+                            mu * delta - 0.5 * IV_s + rho / sigma *
+                            (v2 - v1 - kappa * theta * delta + kappa * IV_s),
+                            np.sqrt((1 - rho ** 2) * IV_s)) 
 
     # apply the filtering 
     for t in tqdm(range(N), desc="filtering...", disable = not verbose):
