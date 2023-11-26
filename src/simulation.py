@@ -158,7 +158,7 @@ if reoptimize:
     opt_ret = fmin_bfgs(
         f=lambda x: heston93_particle_filter(np.concatenate([x, [eta_transformed]]),
                                                 simul, ret, 1,
-                                                verbose=False)[0],  # Only use the log likelihood
+                                                verbose=True)[0],  # Only use the log likelihood
         x0=tparams[:5],
         fprime=None, # Set to None to use a numerical approximation of the gradient
         epsilon=1e-3, # Set the step size for the numerical approximation of the gradient
@@ -178,7 +178,7 @@ if reoptimize:
     opt_rv = fmin_bfgs(
         f=lambda x: heston93_particle_filter(x, simul, 
                                                 np.column_stack((ret, RV)),
-                                                1, verbose=False)[0], # Only use the log likelihood
+                                                1, verbose=True)[0], # Only use the log likelihood
         x0=tparams,
         fprime=None, # Set to None to use a numerical approximation of the gradient
         epsilon=1e-3, # Set the step size for the numerical approximation of the gradient

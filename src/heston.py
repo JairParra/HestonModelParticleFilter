@@ -253,7 +253,7 @@ def heston93_particle_filter(x: np.ndarray,
         Like_H[t] = np.log(np.mean(w))
 
         # Normalize particle weights
-        pis = 0 if np.sum(w) == 0 else w / np.sum(w)
+        pis = w if np.sum(w) == 0 else w / np.sum(w)
 
         # Apply smoothing to the volatility CDF
         arr = np.vstack((v2, pis)).T
