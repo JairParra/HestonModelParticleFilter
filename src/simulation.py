@@ -61,6 +61,7 @@ kappa = 5  # speed of mean reversion
 theta = 0.02  # Mean reversion level
 rho = -0.7  # Correlation
 sigma = 0.3  # volatility of volatility
+eta = 0.2
 v = 0.01
 
 # Simulation of returns
@@ -79,7 +80,7 @@ sigma_transformed = np.log(sigma)
 kappa_transformed = np.log(kappa)
 theta_transformed = np.log(theta)
 rho_transformed = np.log(1 + rho) - np.log(1 - rho)
-eta_transformed = np.log(0.2)
+eta_transformed = np.log(eta)
 tparams = [mu_transformed, kappa_transformed, theta_transformed, sigma_transformed, rho_transformed, eta_transformed]
 
 # Generating the random variables
@@ -105,50 +106,60 @@ print(f"Execution time: {end_time - start_time} seconds")
 # Call the function with the filtered variance data
 plot_filtered_variance(V_RV_true, num_days)
 
-###########################
-### 4. Parameter Search ###
-###########################
+################################
+### 4. Estimating Parmaeters ###
+################################
 
 ## Note: set verbose=False to avoid the output at every iteration
 
-# Transformed parameters
-start_time = time.time()
-opt_ret = fmin(
-    func=lambda x: heston93_particle_filter(np.concatenate([x, [eta_transformed]]),
-                                            simul, ret, 1,
-                                            verbose=False)[0],  # Only use the log likelihood
-    x0=tparams[:5],
-    xtol=1e-3,
-    ftol=1e-3,
-    maxiter=200, # I put a limit since it doesn't seem to be converging 
-    disp=True   # Set to False to turn off the iteration messages
-)
-end_time = time.time() # might take ~1min per 10 steps
-print(f"Execution time: {end_time - start_time} seconds")
+# set to False to avoid fittig from scratch
+reoptimize = True
 
-
-# all parameters
-start_time = time.time()
-opt_rv = fmin(
-    func=lambda x: heston93_particle_filter(x, simul, 
-                                            np.column_stack((ret, RV)),
-                                            1, verbose=False)[0], # Only use the log likelihood
-    x0=tparams,
-    xtol=1e-3,
-    ftol=1e-3,
-    maxiter=200, # I put a limit since it doesn't seem to be converging 
-    disp=True
-)
-print(f"Execution time: {end_time - start_time} seconds")
-
-
-# save the optimal parameters at this step 
-with open('data_clean/opt_params/opt_ret.npy', 'wb') as f: 
-    np.save(f, opt_ret)
+if reoptimize: 
+    # Transformed parameters
+    start_time = time.time()
+    opt_ret = fmin(
+        func=lambda x: heston93_particle_filter(np.concatenate([x, [eta_transformed]]),
+                                                simul, ret, 1,
+                                                verbose=False)[0],  # Only use the log likelihood
+        x0=tparams[:5],
+        xtol=1e-3,
+        ftol=1e-3,
+        maxiter=200, # I put a limit since it doesn't seem to be converging 
+        disp=True   # Set to False to turn off the iteration messages
+    )
+    end_time = time.time() # might take ~1min per 10 steps
+    print(f"Execution time: {end_time - start_time} seconds")
     
-# save the optimal parameters at this step 
-with open('data_clean/opt_params/opt_rv.npy', 'wb') as f: 
-    np.save(f, opt_rv)
+    
+    # all parameters
+    start_time = time.time()
+    opt_rv = fmin(
+        func=lambda x: heston93_particle_filter(x, simul, 
+                                                np.column_stack((ret, RV)),
+                                                1, verbose=False)[0], # Only use the log likelihood
+        x0=tparams,
+        xtol=1e-3,
+        ftol=1e-3,
+        maxiter=200, # I put a limit since it doesn't seem to be converging 
+        disp=True
+    )
+    print(f"Execution time: {end_time - start_time} seconds")
+    
+    
+    # save the optimal parameters at this step 
+    with open('data_clean/opt_params/opt_ret.npy', 'wb') as f: 
+        np.save(f, opt_ret)
+        
+    # save the optimal parameters at this step 
+    with open('data_clean/opt_params/opt_rv.npy', 'wb') as f: 
+        np.save(f, opt_rv)
+        
+else: 
+    # load pre-optimized parameters
+    opt_ret = np.load('data_clean/opt_params/opt_ret.npy')
+    opt_rv = np.load('data_clean/opt_params/opt_rv.npy')
+    
 
 # Compute the filtered volatility
 Like_H_ret, V_ret_est = heston93_particle_filter(opt_ret, simul, ret, 1, verbose=True)
@@ -160,14 +171,25 @@ plot_returns_analysis(ret, V, V_ret_true, V_ret_est, num_days)
 # Call the function for plotting analysis using returns and realized variance
 plot_returns_rv_analysis(ret, V, V_RV_true, V_RV_est, num_days)
 
-# Call the function with the filtered variance data
-plot_filtered_variance(V_ret_est, num_days)
+# Plot fitered variance with returns sample, optimized parameters
+plot_filtered_variance(V_ret_est, num_days, spec="Returns Sample")
 
-# Call the function with the filtered variance data
-plot_filtered_variance(V_RV_est, num_days)
+# Plot fitered variance with returns sample and RV, optimized parameters
+plot_filtered_variance(V_RV_est, num_days, spec="Returns + RV Sample")
+
+# Print the original parameters vs optimized parameters
+print(f"True params: mu={mu}, kappa={kappa}, theta={theta}, rho={rho}, sigma={sigma}, eta={eta}")
+print(f"opt_ret: mu={opt_ret[0]}, kappa={opt_ret[1]}, theta={opt_ret[2]}, rho={opt_ret[3]}, sigma={opt_ret[4]}")
+print(f"opt_rv: mu={opt_rv[0]}, kappa={opt_rv[1]}, theta={opt_ret[2]}, rho={opt_rv[3]}, sigma={opt_rv[4]}, eta={opt_rv[5]}")
+
+#######################################
+### 5. Histograms Real vs Fitted Vt ###
+#######################################
+
+
 
 ##############################
-### 5. Likelihood Analysis ###
+### 6. Likelihood Analysis ###
 ##############################
 
 # Optimal parameters obtained from previous optimization

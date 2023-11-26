@@ -62,13 +62,17 @@ def plot_simulations(ret, V, IV, num_days):
     plt.show()
 
 
-def plot_filtered_variance(filtered_variance, num_days, include_confidence_interval=True):
+def plot_filtered_variance(filtered_variance, 
+                           num_days, 
+                           spec:str=None, 
+                           include_confidence_interval=True):
     """
     Plots the progression of filtered variance over time.
 
     Parameters:
     filtered_variance (np.ndarray): Filtered variance array from the particle filter.
     num_days (int): Number of days (time steps) in the simulation.
+    spec (str): Which dataset we are talking about
     include_confidence_interval (bool): Whether to include confidence intervals in the plot.
     """
     time_steps = range(num_days)
@@ -89,7 +93,7 @@ def plot_filtered_variance(filtered_variance, num_days, include_confidence_inter
 
     plt.xlabel('Time (Days)')
     plt.ylabel('Variance')
-    plt.title('Filtered Variance Progression Over Time')
+    plt.title(f'Filtered Variance Progression Over Time ({spec})')
     plt.legend()
     plt.show()
     
@@ -200,9 +204,16 @@ def plot_returns_rv_analysis(ret, V, V_RV_true, V_RV_est, num_days):
 
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.show()
+    
+    
+####################################
+### 3. Histograms true vs Fitted ###
+####################################
+
+
 
 ########################################
-### 4. Plots for likelihood analysis ###
+### 5. Plots for likelihood analysis ###
 ########################################
 
 def plot_log_likelihood_ret(log_likelihoods, num_days):
