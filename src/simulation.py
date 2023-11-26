@@ -116,55 +116,17 @@ plot_filtered_variance(V_RV_true, num_days)
 reoptimize = True
 
 if reoptimize: 
-    # # Transformed parameters
-    # start_time = time.time()
-    # opt_ret = fmin(
-    #     func=lambda x: heston93_particle_filter(np.concatenate([x, [eta_transformed]]),
-    #                                             simul, ret, 1,
-    #                                             verbose=True)[0],  # Only use the log likelihood
-    #     x0=tparams[:5],
-    #     xtol=1e-3, 
-    #     ftol=1e-3, 
-    #     maxiter=10, # I put a limit since it doesn't seem to be converging 
-    #     disp=True   # Set to False to turn off the iteration messages
-    # )
-    # end_time = time.time() # might take ~1min per 10 steps
-    # print(f"Execution time: {end_time - start_time} seconds")
-    
-    # # save the optimal parameters at this step 
-    # with open('data_clean/opt_params/opt_ret.npy', 'wb') as f: 
-    #     np.save(f, opt_ret)
-    
-    # # all parameters
-    # start_time = time.time()
-    # opt_rv = fmin(
-    #     func=lambda x: heston93_particle_filter(x, simul, 
-    #                                             np.column_stack((ret, RV)),
-    #                                             1, verbose=False)[0], # Only use the log likelihood
-    #     x0=tparams,
-    #     xtol=1e-3,
-    #     ftol=1e-3,
-    #     maxiter=1000, # I put a limit since it doesn't seem to be converging 
-    #     disp=True
-    # )
-    # print(f"Execution time: {end_time - start_time} seconds")
-    
-    # # save the optimal parameters at this step 
-    # with open('data_clean/opt_params/opt_rv.npy', 'wb') as f: 
-    #     np.save(f, opt_rv)
-    
     # Transformed parameters
     start_time = time.time()
-    opt_ret = fmin_bfgs(
-        f=lambda x: heston93_particle_filter(np.concatenate([x, [eta_transformed]]),
+    opt_ret = fmin(
+        func=lambda x: heston93_particle_filter(np.concatenate([x, [eta_transformed]]),
                                                 simul, ret, 1,
                                                 verbose=True)[0],  # Only use the log likelihood
         x0=tparams[:5],
-        fprime=None, # Set to None to use a numerical approximation of the gradient
-        epsilon=1e-3, # Set the step size for the numerical approximation of the gradient
-        maxiter=1000, # Set the maximum number of iterations
-        full_output=True, # Set to True to return the final value of the function, the gradient, the inverse Hessian, the number of function calls, the number of gradient calls, and a warning flag
-        disp=True   # Set to True to show the progress of the optimization
+        xtol=1e-2, 
+        ftol=1e-2, 
+        maxiter=200, # I put a limit since it doesn't seem to be converging 
+        disp=True   # Set to False to turn off the iteration messages
     )
     end_time = time.time() # might take ~1min per 10 steps
     print(f"Execution time: {end_time - start_time} seconds")
@@ -175,18 +137,21 @@ if reoptimize:
     
     # all parameters
     start_time = time.time()
-    opt_rv = fmin_bfgs(
-        f=lambda x: heston93_particle_filter(x, simul, 
+    opt_rv = fmin(
+        func=lambda x: heston93_particle_filter(x, simul, 
                                                 np.column_stack((ret, RV)),
-                                                1, verbose=True)[0], # Only use the log likelihood
+                                                1, verbose=False)[0], # Only use the log likelihood
         x0=tparams,
-        fprime=None, # Set to None to use a numerical approximation of the gradient
-        epsilon=1e-3, # Set the step size for the numerical approximation of the gradient
-        maxiter=1000, # Set the maximum number of iterations
-        full_output=True, # Set to True to return the final value of the function, the gradient, the inverse Hessian, the number of function calls, the number of gradient calls, and a warning flag
-        disp=True # Set to True to show the progress of the optimization
+        xtol=1e-2,
+        ftol=1e-2,
+        maxiter=200, # I put a limit since it doesn't seem to be converging 
+        disp=True
     )
     print(f"Execution time: {end_time - start_time} seconds")
+    
+    # save the optimal parameters at this step 
+    with open('data_clean/opt_params/opt_rv.npy', 'wb') as f: 
+        np.save(f, opt_rv)
 
     # save the optimal parameters at this step 
     with open('data_clean/opt_params/opt_rv.npy', 'wb') as f: 

@@ -250,10 +250,11 @@ def heston93_particle_filter(x: np.ndarray,
         Y = obs[t] if is_1D else obs[t, 0]
         RV = None if is_1D else obs[t, 1]
         w = pdf(Y, RV, IV, v1, v2)
-        Like_H[t] = np.log(np.mean(w))
+        w_bar = np.mean(w) if np.mean(w) != 0 else 1e-6
+        Like_H[t] = np.log(w_bar)
 
         # Normalize particle weights
-        pis = w if np.sum(w) == 0 else w / np.sum(w)
+        pis = w / w_bar
 
         # Apply smoothing to the volatility CDF
         arr = np.vstack((v2, pis)).T
