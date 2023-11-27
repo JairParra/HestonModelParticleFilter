@@ -244,7 +244,11 @@ def heston93_particle_filter(x: np.ndarray,
         Y = obs[t] if is_1D else obs[t, 0]
         RV = None if is_1D else obs[t, 1]
         w = pdf(Y, RV, IV, v1, v2)
-        Like_H[t] = np.log(np.mean(w))
+        if np.mean(w) == 0:
+            test = 1e-6
+        else:
+            test = np.mean(w)
+        Like_H[t] = np.log(test)
 
         # Normalize particle weights
         pis = 0 if np.sum(w) == 0 else w / np.sum(w)

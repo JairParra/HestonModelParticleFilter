@@ -20,7 +20,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 # computational  
-from scipy.optimize import fmin 
+from scipy.optimize import fmin, fmin_bfgs
 
 # simulation and filtering scripts 
 from heston import simulate_heston93
@@ -68,7 +68,7 @@ v = 0.01
 ret, V, RV = simulate_heston93(mu, kappa, theta, sigma, rho, v, num_days)
 
 # Call the function with the simulated data
-plot_simulations(ret, V, RV, num_days)
+#plot_simulations(ret, V, RV, num_days)
 
 ######################################
 ### 3. Filter with true parameters ###
@@ -104,7 +104,7 @@ print(f"Execution time: {end_time - start_time} seconds")
 
 
 # Call the function with the filtered variance data
-plot_filtered_variance(V_RV_true, num_days)
+#plot_filtered_variance(V_RV_true, num_days)
 
 ################################
 ### 4. Estimating Parmaeters ###
@@ -123,14 +123,17 @@ if reoptimize:
                                                 simul, ret, 1,
                                                 verbose=False)[0],  # Only use the log likelihood
         x0=tparams[:5],
-        xtol=1e-3,
-        ftol=1e-3,
+        xtol=2e-3,
+        #ftol=1e-3,
         maxiter=200, # I put a limit since it doesn't seem to be converging 
         disp=True   # Set to False to turn off the iteration messages
     )
     end_time = time.time() # might take ~1min per 10 steps
     print(f"Execution time: {end_time - start_time} seconds")
-    
+
+      # save the optimal parameters at this step 
+    with open('data_clean/opt_params/opt_ret.npy', 'wb') as f: 
+        np.save(f, opt_ret) 
     
     # all parameters
     start_time = time.time()
@@ -139,17 +142,12 @@ if reoptimize:
                                                 np.column_stack((ret, RV)),
                                                 1, verbose=False)[0], # Only use the log likelihood
         x0=tparams,
-        xtol=1e-3,
-        ftol=1e-3,
+        xtol=2e-3,
+        #ftol=1e-3,
         maxiter=200, # I put a limit since it doesn't seem to be converging 
         disp=True
     )
     print(f"Execution time: {end_time - start_time} seconds")
-    
-    
-    # save the optimal parameters at this step 
-    with open('data_clean/opt_params/opt_ret.npy', 'wb') as f: 
-        np.save(f, opt_ret)
         
     # save the optimal parameters at this step 
     with open('data_clean/opt_params/opt_rv.npy', 'wb') as f: 
