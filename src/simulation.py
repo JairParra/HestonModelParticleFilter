@@ -176,9 +176,9 @@ plot_filtered_variance(V_ret_est, num_days, spec="Returns Sample")
 plot_filtered_variance(V_RV_est, num_days, spec="Returns + RV Sample")
 
 # Print the original parameters vs optimized parameters
-print(f"True params: mu={mu}, kappa={kappa}, theta={theta}, rho={rho}, sigma={sigma}, eta={eta}")
-print(f"opt_ret: mu={opt_ret[0]}, kappa={opt_ret[1]}, theta={opt_ret[2]}, rho={opt_ret[3]}, sigma={opt_ret[4]}")
-print(f"opt_rv: mu={opt_rv[0]}, kappa={opt_rv[1]}, theta={opt_ret[2]}, rho={opt_rv[3]}, sigma={opt_rv[4]}, eta={opt_rv[5]}")
+print(f"True params: mu={mu}, kappa={kappa}, theta={theta}, sigma={sigma}, rho={rho}, eta={eta}")
+print(f"opt_ret: mu={opt_ret[0]}, kappa={opt_ret[1]}, theta={opt_ret[2]}, sigma={opt_ret[3]}, rho={opt_ret[4]}")
+print(f"opt_rv: mu={opt_rv[0]}, kappa={opt_rv[1]}, theta={opt_ret[2]}, sigma={opt_rv[3]}, rho={opt_rv[4]}, eta={opt_rv[5]}")
 
 #######################################
 ### 5. Histograms Real vs Fitted Vt ###
