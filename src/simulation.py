@@ -20,7 +20,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 # computational  
-from scipy.optimize import fmin 
+from scipy.optimize import fmin, fmin_bfgs
 
 # simulation and filtering scripts 
 from heston import simulate_heston93
@@ -121,36 +121,34 @@ if reoptimize:
     opt_ret = fmin(
         func=lambda x: heston93_particle_filter(np.concatenate([x, [eta_transformed]]),
                                                 simul, ret, 1,
-                                                verbose=False)[0],  # Only use the log likelihood
+                                                verbose=True)[0],  # Only use the log likelihood
         x0=tparams[:5],
-        xtol=1e-3,
-        ftol=1e-3,
-        maxiter=200, # I put a limit since it doesn't seem to be converging 
+        xtol=1e-2, 
+        ftol=1e-2, 
+        maxiter=500, # I put a limit since it doesn't seem to be converging 
         disp=True   # Set to False to turn off the iteration messages
     )
     end_time = time.time() # might take ~1min per 10 steps
     print(f"Execution time: {end_time - start_time} seconds")
     
+    # save the optimal parameters at this step 
+    with open('data_clean/opt_params/opt_ret.npy', 'wb') as f: 
+        np.save(f, opt_ret)
     
     # all parameters
     start_time = time.time()
     opt_rv = fmin(
         func=lambda x: heston93_particle_filter(x, simul, 
                                                 np.column_stack((ret, RV)),
-                                                1, verbose=False)[0], # Only use the log likelihood
+                                                1, verbose=True)[0], # Only use the log likelihood
         x0=tparams,
-        xtol=1e-3,
-        ftol=1e-3,
-        maxiter=200, # I put a limit since it doesn't seem to be converging 
+        xtol=1e-2,
+        ftol=1e-2,
+        maxiter=500, # I put a limit since it doesn't seem to be converging 
         disp=True
     )
     print(f"Execution time: {end_time - start_time} seconds")
-    
-    
-    # save the optimal parameters at this step 
-    with open('data_clean/opt_params/opt_ret.npy', 'wb') as f: 
-        np.save(f, opt_ret)
-        
+
     # save the optimal parameters at this step 
     with open('data_clean/opt_params/opt_rv.npy', 'wb') as f: 
         np.save(f, opt_rv)
@@ -186,6 +184,7 @@ print(f"opt_rv: mu={opt_rv[0]}, kappa={opt_rv[1]}, theta={opt_ret[2]}, rho={opt_
 ### 5. Histograms Real vs Fitted Vt ###
 #######################################
 
+# Want to create histograms of the errors 
 
 
 ##############################

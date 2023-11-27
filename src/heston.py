@@ -225,10 +225,16 @@ def heston93_particle_filter(x: np.ndarray,
 
     # Define the probability density function
     def pdf(Y, RV, IV_s, v1, v2):
-        return norm.pdf(Y, mu * delta - 0.5 * IV_s + rho / sigma *
-                        (v2 - v1 - kappa * theta * delta + kappa * IV_s),
-                        np.sqrt((1 - rho ** 2) * IV_s)) * (norm.pdf((IV_s - RV) / RV, 0, eta_p)
-                                                           if not is_1D else 1)
+        if not is_1D: 
+            return norm.pdf(Y, 
+                            mu * delta - 0.5 * IV_s + rho / sigma *
+                            (v2 - v1 - kappa * theta * delta + kappa * IV_s),
+                            np.sqrt((1 - rho ** 2) * IV_s)) * (norm.pdf((IV_s - RV) / RV, 0, eta_p))
+        else: 
+            return norm.pdf(Y, 
+                            mu * delta - 0.5 * IV_s + rho / sigma *
+                            (v2 - v1 - kappa * theta * delta + kappa * IV_s),
+                            np.sqrt((1 - rho ** 2) * IV_s)) 
 
     # apply the filtering 
     for t in tqdm(range(N), desc="filtering...", disable = not verbose):
@@ -244,10 +250,12 @@ def heston93_particle_filter(x: np.ndarray,
         Y = obs[t] if is_1D else obs[t, 0]
         RV = None if is_1D else obs[t, 1]
         w = pdf(Y, RV, IV, v1, v2)
-        Like_H[t] = np.log(np.mean(w))
+        w = w if np.any(w) else np.full(w.shape, 1/w.shape[0]) # if w was all zeroes, equal weights
+        w_bar = np.mean(w) if np.mean(w) != 0 else 1e-6
+        Like_H[t] = np.log(w_bar)
 
         # Normalize particle weights
-        pis = 0 if np.sum(w) == 0 else w / np.sum(w)
+        pis = w / w_bar
 
         # Apply smoothing to the volatility CDF
         arr = np.vstack((v2, pis)).T
@@ -255,7 +263,7 @@ def heston93_particle_filter(x: np.ndarray,
         arr = np.sort(arr, axis=0)
         arr[:, 1] = np.cumsum(arr[:, 1]) - arr[:, 1] / 2
         arr = np.vstack(([arr[0, 0] * 0.95, 0], arr, [arr[-1, 0] * 1.05, 1]))
-
+ 
         # Compute expected volatility value and confidence interval if required
         if c_i == 1:
             V[t, 0] = np.sum(v2 * pis)
