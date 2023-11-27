@@ -225,16 +225,26 @@ def heston93_particle_filter(x: np.ndarray,
 
     # Define the probability density function
     def pdf(Y, RV, IV_s, v1, v2):
-        if not is_1D: 
-            return norm.pdf(Y, 
-                            mu * delta - 0.5 * IV_s + rho / sigma *
-                            (v2 - v1 - kappa * theta * delta + kappa * IV_s),
-                            np.sqrt((1 - rho ** 2) * IV_s)) * (norm.pdf((IV_s - RV) / RV, 0, eta_p))
+        if is_1D: 
+            return(
+                norm.pdf(Y, 
+                    mu * delta - 0.5 * IV_s + rho / sigma *
+                    (v2 - v1 - kappa * theta * delta + kappa * IV_s),
+                    np.sqrt((1 - rho ** 2) * IV_s)) 
+                )
         else: 
-            return norm.pdf(Y, 
-                            mu * delta - 0.5 * IV_s + rho / sigma *
-                            (v2 - v1 - kappa * theta * delta + kappa * IV_s),
-                            np.sqrt((1 - rho ** 2) * IV_s)) 
+            return(
+                norm.pdf(Y, 
+                    mu * delta - 0.5 * IV_s + rho / sigma *
+                    (v2 - v1 - kappa * theta * delta + kappa * IV_s),
+                    np.sqrt((1 - rho ** 2) * IV_s)) * (norm.pdf((IV_s - RV) / RV, 0, eta_p))
+                )         
+        
+        # return norm.pdf(Y, 
+        #                 mu * delta - 0.5 * IV_s + rho / sigma *
+        #                 (v2 - v1 - kappa * theta * delta + kappa * IV_s),
+        #                 np.sqrt((1 - rho ** 2) * IV_s)) * (norm.pdf((IV_s - RV) / RV, 0, eta_p)
+        #                                                    if not is_1D else 1)
 
     # apply the filtering 
     for t in tqdm(range(N), desc="filtering...", disable = not verbose):
@@ -249,21 +259,32 @@ def heston93_particle_filter(x: np.ndarray,
         # Calculate weights for each particle and update log-likelihood
         Y = obs[t] if is_1D else obs[t, 0]
         RV = None if is_1D else obs[t, 1]
-        w = pdf(Y, RV, IV, v1, v2)
-        w = w if np.any(w) else np.full(w.shape, 1/w.shape[0]) # if w was all zeroes, equal weights
-        w_bar = np.mean(w) if np.mean(w) != 0 else 1e-6
-        Like_H[t] = np.log(w_bar)
+        w = pdf(Y, RV, IV, v1, v2); print(f"w(t): {w}")
+        if np.mean(w) == 0:
+            test = 1e-6
+        else:
+            test = np.mean(w)
+        Like_H[t] = np.log(test)
 
         # Normalize particle weights
-        pis = w / w_bar
+        pis = w if np.sum(w) == 0 else w / np.sum(w)
 
-        # Apply smoothing to the volatility CDF
-        arr = np.vstack((v2, pis)).T
-        arr = arr[arr[:, 1] > 1e-7]
-        arr = np.sort(arr, axis=0)
-        arr[:, 1] = np.cumsum(arr[:, 1]) - arr[:, 1] / 2
-        arr = np.vstack(([arr[0, 0] * 0.95, 0], arr, [arr[-1, 0] * 1.05, 1]))
- 
+        try: 
+            # Apply smoothing to the volatility CDF
+            arr = np.vstack((v2, pis)).T
+            arr = arr[arr[:, 1] > 1e-7]
+            arr = np.sort(arr, axis=0)
+            arr[:, 1] = np.cumsum(arr[:, 1]) - arr[:, 1] / 2
+            arr = np.vstack(([arr[0, 0] * 0.95, 0], arr, [arr[-1, 0] * 1.05, 1]))
+        except Exception as e: 
+            print("\n") 
+            print("t: ", t)
+            print("w: ", w)
+            print("pis: ", pis)
+            print("np.vstack((v2, pis)).T: ", np.vstack((v2, pis)).T) 
+            print("arr: ", arr)
+            raise e 
+
         # Compute expected volatility value and confidence interval if required
         if c_i == 1:
             V[t, 0] = np.sum(v2 * pis)
@@ -280,5 +301,3 @@ def heston93_particle_filter(x: np.ndarray,
     if verbose: print("-log_likelihood: ", Like_H)
 
     return Like_H, V
-
-

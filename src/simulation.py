@@ -23,17 +23,17 @@ import matplotlib.pyplot as plt
 from scipy.optimize import fmin, fmin_bfgs
 
 # simulation and filtering scripts 
-from heston import simulate_heston93
-from heston import heston93_particle_filter 
-from utils import calculate_log_likelihoods_for_params
+from src.heston import simulate_heston93
+from src.heston import heston93_particle_filter 
+from src.utils import calculate_log_likelihoods_for_params
 
 # custom plotting  
-from plotting import plot_simulations
-from plotting import plot_filtered_variance
-from plotting import plot_returns_analysis
-from plotting import plot_returns_rv_analysis
-from plotting import plot_log_likelihood_ret
-from plotting import plot_log_likelihood_ret_rv
+from src.plotting import plot_simulations
+from src.plotting import plot_filtered_variance
+from src.plotting import plot_returns_analysis
+from src.plotting import plot_returns_rv_analysis
+from src.plotting import plot_log_likelihood_ret
+from src.plotting import plot_log_likelihood_ret_rv
 
 ## configurations 
 
