@@ -253,15 +253,20 @@ def heston93_particle_filter(x: np.ndarray,
         # Calculate weights for each particle and update log-likelihood
         Y = obs[t] if is_1D else obs[t, 0]
         RV = None if is_1D else obs[t, 1]
-        w = pdf(Y, RV, IV, v1, v2); print(f"w(t): {w}")
-        if np.mean(w) == 0:
-            test = 1e-6
-        else:
-            test = np.mean(w)
-        Like_H[t] = np.log(test)
+        w = pdf(Y, RV, IV, v1, v2); 
+        # print(f"w({t}): {w}")
+        
+        # Check if all weights are zero and handle accordingly
+        if np.all(w == 0):
+            print(f"All weights are zero at timestep {t}.")
+            # You may choose to break the loop, continue, or add a small constant to w
+            w += 1e-6  # Adding a small constant to avoid division by zero
+            
+        w_bar = np.mean(w)
+        Like_H[t] = np.log(w_bar) if w_bar > 0 else -np.inf  # Handle log(0)
 
         # Normalize particle weights
-        pis = w if np.sum(w) == 0 else w / np.sum(w)
+        pis = w / np.sum(w) if np.sum(w) > 0 else np.zeros_like(w)  # Handle division by zero
 
         try: 
             # Apply smoothing to the volatility CDF

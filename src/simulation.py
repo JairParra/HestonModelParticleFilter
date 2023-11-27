@@ -191,49 +191,48 @@ print(f"opt_rv: mu={opt_rv[0]}, kappa={opt_rv[1]}, theta={opt_ret[2]}, rho={opt_
 ### 6. Likelihood Analysis ###
 ##############################
 
-# # Optimal parameters obtained from previous optimization
-# opt_ret_tr = [mu_transformed, kappa_transformed, theta_transformed, sigma_transformed, rho_transformed]
-# opt_rv_tr = [mu_transformed, kappa_transformed, theta_transformed, sigma_transformed, rho_transformed, eta_transformed]
-# 
-# # Define ranges for parameters for returns only
-# param_ranges_ret = {
-#     'mu': np.linspace(0.06 - 0.2, 0.06 + 0.2, 50),
-#     'kappa': np.linspace(5 - 3, 5 + 3, 50),
-#     'theta': np.linspace(0.02 - 0.01, 0.02 + 0.015, 50),
-#     'sigma': np.linspace(0.3 - 0.1, 0.3 + 0.1, 50),
-#     'rho': np.linspace(-0.7 - 0.2, -0.7 + 0.2, 50)
-# }
-# 
-# # Define ranges for returns and RV 
-# param_ranges_rv = param_ranges_ret.copy()
-# param_ranges_rv['eta'] = np.linspace(0.2 - 0.1, 0.2 + 0.1, 50)
-# 
-# # Extract optimized parameters for returns only
-# mu_opt_ret = opt_ret_tr[0] / 10
-# kappa_opt_ret = np.exp(opt_ret_tr[1])
-# theta_opt_ret = np.exp(opt_ret_tr[2])
-# sigma_opt_ret = np.exp(opt_ret_tr[3])
-# rho_opt_ret = (1 - np.exp(-opt_ret_tr[4])) / (1 + np.exp(-opt_ret_tr[4]))
-# 
-# # Similarly for returns and RV
-# mu_opt_rv = opt_rv_tr[0] / 10
-# kappa_opt_rv = np.exp(opt_rv_tr[1])
-# theta_opt_rv = np.exp(opt_rv_tr[2])
-# sigma_opt_rv = np.exp(opt_rv_tr[3])
-# rho_opt_rv = (1 - np.exp(-opt_rv_tr[4])) / (1 + np.exp(-opt_rv_tr[4]))
-# eta_opt_rv = np.exp(opt_rv_tr[5])
-# 
-# # repack transformed parameters 
-# opt_ret = [mu_opt_ret, kappa_opt_ret, theta_opt_ret, sigma_opt_ret, rho_opt_ret]
-# opt_rv = [mu_opt_rv, kappa_opt_rv, theta_opt_rv, sigma_opt_rv, rho_opt_rv, eta_opt_rv]
-# 
-# # Calculate log-likelihoods for each parameter range
-# results_ret = calculate_log_likelihoods_for_params(opt_ret, param_ranges_ret, simul, ret)
-# results_rv = calculate_log_likelihoods_for_params(opt_rv, param_ranges_rv, simul, ret, RV)
-# 
-# # Plotting for Returns Only
-# plot_log_likelihood_ret(results_ret)
-# 
-# # Plotting for Returns and RV
-# plot_log_likelihood_ret_rv(results_rv)
-# 
+# Optimal parameters obtained from previous optimization
+opt_ret_tr = [mu_transformed, kappa_transformed, theta_transformed, sigma_transformed, rho_transformed]
+opt_rv_tr = [mu_transformed, kappa_transformed, theta_transformed, sigma_transformed, rho_transformed, eta_transformed]
+
+# Define ranges for parameters for returns only
+param_ranges_ret = {
+    'mu': np.linspace(0.06 - 0.2, 0.06 + 0.2, 50),
+    'kappa': np.linspace(5 - 3, 5 + 3, 50),
+    'theta': np.linspace(0.02 - 0.01, 0.02 + 0.015, 50),
+    'sigma': np.linspace(0.3 - 0.1, 0.3 + 0.1, 50),
+    'rho': np.linspace(-0.7 - 0.2, -0.7 + 0.2, 50)
+}
+
+# Define ranges for returns and RV 
+param_ranges_rv = param_ranges_ret.copy()
+param_ranges_rv['eta'] = np.linspace(0.2 - 0.1, 0.2 + 0.1, 50)
+
+# Extract optimized parameters for returns only
+mu_opt_ret = opt_ret_tr[0] / 10
+kappa_opt_ret = np.exp(opt_ret_tr[1])
+theta_opt_ret = np.exp(opt_ret_tr[2])
+sigma_opt_ret = np.exp(opt_ret_tr[3])
+rho_opt_ret = (1 - np.exp(-opt_ret_tr[4])) / (1 + np.exp(-opt_ret_tr[4]))
+
+# Similarly for returns and RV
+mu_opt_rv = opt_rv_tr[0] / 10
+kappa_opt_rv = np.exp(opt_rv_tr[1])
+theta_opt_rv = np.exp(opt_rv_tr[2])
+sigma_opt_rv = np.exp(opt_rv_tr[3])
+rho_opt_rv = (1 - np.exp(-opt_rv_tr[4])) / (1 + np.exp(-opt_rv_tr[4]))
+eta_opt_rv = np.exp(opt_rv_tr[5])
+
+# repack transformed parameters 
+opt_ret = [mu_opt_ret, kappa_opt_ret, theta_opt_ret, sigma_opt_ret, rho_opt_ret]
+opt_rv = [mu_opt_rv, kappa_opt_rv, theta_opt_rv, sigma_opt_rv, rho_opt_rv, eta_opt_rv]
+
+# Calculate log-likelihoods for each parameter range
+results_ret = calculate_log_likelihoods_for_params(opt_ret, param_ranges_ret, simul, ret)
+results_rv = calculate_log_likelihoods_for_params(opt_rv, param_ranges_rv, simul, ret, RV)
+
+# Plotting for Returns Only
+plot_log_likelihood_ret(results_ret, num_days)
+
+# Plotting for Returns and RV
+plot_log_likelihood_ret_rv(results_rv, num_days)
