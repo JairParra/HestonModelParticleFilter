@@ -240,12 +240,6 @@ def heston93_particle_filter(x: np.ndarray,
                     np.sqrt((1 - rho ** 2) * IV_s)) * (norm.pdf((IV_s - RV) / RV, 0, eta_p))
                 )         
         
-        # return norm.pdf(Y, 
-        #                 mu * delta - 0.5 * IV_s + rho / sigma *
-        #                 (v2 - v1 - kappa * theta * delta + kappa * IV_s),
-        #                 np.sqrt((1 - rho ** 2) * IV_s)) * (norm.pdf((IV_s - RV) / RV, 0, eta_p)
-        #                                                    if not is_1D else 1)
-
     # apply the filtering 
     for t in tqdm(range(N), desc="filtering...", disable = not verbose):
         # Simulate one step propagation for volatility and compute integrated variance
